@@ -20,7 +20,30 @@ def load_train():
 
     return df
 
-df = load_train()
-print(df)
+def load_test():
+    folder_path = "data/Validation"
+    file_names = os.listdir(folder_path)
+    test = []
+
+    for file_name in file_names:
+        if file_name.endswith(".xml"):
+            try:
+                tree = ET.parse(f"{folder_path}/{file_name}")
+                root = tree.getroot()
+
+                for cn in root.iter("cn"):
+                    test.append(cn.text)
+            except:
+                pass
+        
+    df = pd.DataFrame(test, columns = ["clauseArticle"])
+
+    return df
+
+def load_all():
+    train = load_train()
+    test = load_test()
+
+    return train, test
 
 
