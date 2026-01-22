@@ -71,19 +71,21 @@ def class_distribution():
 def sentence_length():
     train, test = simple_preprocess()
 
-    temp_data = pd.concat([
-        train[['clauseArticle']].assign(Dataset = "train"),
-        test[['clauseArticle']].assign(Dataset = "test")
-    ])
+    # temp_data = pd.concat([
+    #     train[['clauseArticle']].assign(Dataset = "train"),
+    #     test[['clauseArticle']].assign(Dataset = "test")
+    # ])
 
-    temp_data["sentence_length"] = temp_data.apply(lambda x : len(x["clauseArticle"]), axis = 1)
+    train["sentence_length"] = train.apply(lambda x : len(x["clauseArticle"]), axis = 1)
+    test["sentence_length"] = test.apply(lambda x : len(x["clauseArticle"]), axis = 1)
     
-    sns.histplot(temp_data["sentence_length"], kde = True)
+    sns.histplot(train["sentence_length"], kde = True)
+    sns.histplot(test["sentence_length"], kde = True)
     plt.title("문장 길이 분포")
     plt.xlabel("문장 길이")
     plt.ylabel("개수")
     plt.show()
 
-sentence_length()
 
+sentence_length()
 
