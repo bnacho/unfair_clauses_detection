@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 plt.rcParams['font.family'] = 'Malgun Gothic'
 plt.rcParams['axes.unicode_minus'] = False
 import seaborn as sns
+from konlpy.tag import Okt
+from collections import Counter
 
 # 로컬 라이브러리 임포트
 from data import load_train, load_test, load_all
@@ -86,6 +88,42 @@ def sentence_length():
     plt.ylabel("개수")
     plt.show()
 
+# 단어 빈도 시각화
+def word_frequency():
+    train, test = simple_preprocess()
 
-sentence_length()
+    okt = Okt()
+    train_tokenized = []
+    test_tokenized = []
+        
+    for i in range(len(train)):
+        train_tokenized.append(okt.morphs(train["clauseArticle"][i]))
+
+    for i in range(len(test)):
+        test_tokenized.append(okt.morphs(test["clauseArticle"][i]))
+
+    train_counter = Counter(train_tokenized)
+    test_counter = Counter(test_tokenized)
+
+    train_counter.most_common(10)
+    test_counter.most_common(10)
+
+    print("=" * 50)
+    print("학습 데이터의 단어 빈도")
+    print("=" * 50)
+    print(train_counter.most_common(10))
+    print("=" * 50)
+    print("테스트 데이터의 단어 빈도")
+    print("=" * 50)
+    print(test_counter.most_common(10))
+
+word_frequency()
+        
+
+        
+
+        
+
+
+
 
