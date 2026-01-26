@@ -315,7 +315,9 @@ def ngram_frequency():
     plt.show()
 
 # 4, 5-gram도 의미 있는지 테스트
-ngram_frequency()
+# TF-IDF 시각화
+# 단어 빈도수 체크(너무 적게 나오는 단어 따로 처리)
+
 
     
         
