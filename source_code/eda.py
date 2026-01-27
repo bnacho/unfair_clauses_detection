@@ -10,6 +10,7 @@ from sklearn.cluster import KMeans
 from konlpy.tag import Okt
 from collections import defaultdict, Counter
 from nltk.util import ngrams
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 # 로컬 라이브러리 임포트
 from data import load_train, load_test, load_all
@@ -264,19 +265,31 @@ def ngram_frequency():
     train_trigram = []
     test_bigram = []
     test_trigram = []
+    train_quadgram = []
+    test_quadgram = []
+    train_quintgram = []
+    test_quintgram = []
 
     for sentence in train_final:
         train_bigram.extend(ngrams(sentence, 2))
         train_trigram.extend(ngrams(sentence, 3))
+        train_quadgram.extend(ngrams(sentence, 4))
+        train_quintgram.extend(ngrams(sentence, 5))
 
     for sentence in test_final:
         test_bigram.extend(ngrams(sentence, 2))
         test_trigram.extend(ngrams(sentence, 3))
+        test_quadgram.extend(ngrams(sentence, 4))
+        test_quintgram.extend(ngrams(sentence, 5))
     
     train_bigram_counter = Counter(train_bigram)
     train_trigram_counter = Counter(train_trigram)
+    train_quadgram_counter = Counter(train_quadgram)
+    train_quintgram_counter = Counter(train_quintgram)
     test_bigram_counter = Counter(test_bigram)
     test_trigram_counter = Counter(test_trigram)
+    test_quadgram_counter = Counter(test_quadgram)
+    test_quintgram_counter = Counter(test_quintgram)
 
     print("=" * 50)
     print("학습 데이터의 bigram")
@@ -286,6 +299,14 @@ def ngram_frequency():
     print("학습 데이터의 trigram")
     print("=" * 50)
     print(train_trigram_counter.most_common(10))
+    print("=" * 50)
+    print("학습 데이터의 quadgram")
+    print("=" * 50)
+    print(train_quadgram_counter.most_common(10))
+    print("=" * 50)
+    print("학습 데이터의 quintgram")
+    print("=" * 50)
+    print(train_quintgram_counter.most_common(10))
 
     # ngram 시각화
     train_bigram, train_bigram_frequency  = zip(*train_bigram_counter.most_common(10))
@@ -294,11 +315,23 @@ def ngram_frequency():
     train_trigram, train_trigram_frequency = zip(*train_trigram_counter.most_common(10))
     test_trigram, test_trigram_frequency = zip(*test_trigram_counter.most_common(10))
 
+    train_quadgram, train_quadgram_frequency = zip(*train_quadgram_counter.most_common(10))
+    test_quadgram, test_quadgram_frequency = zip(*test_quadgram_counter.most_common(10))
+
+    train_quintgram, train_quintgram_frequency = zip(*train_quintgram_counter.most_common(10))
+    test_quintgram, test_quintgram_frequency = zip(*test_quintgram_counter.most_common(10))
+
     joined_train_bigram = [' '.join(bigram) for bigram in train_bigram]
     joined_test_bigram = [' '.join(bigram) for bigram in test_bigram]
-    
+
     joined_train_trigram = [' '.join(trigram) for trigram in train_trigram]
     joined_test_trigram = [' '.join(trigram) for trigram in test_trigram]
+
+    joined_train_quadgram = [' '.join(quadgram) for quadgram in train_quadgram]
+    joined_test_quadgram = [' '.join(quadgram) for quadgram in test_quadgram]
+
+    joined_train_quintgram = [' '.join(quintgram) for quintgram in train_quintgram]
+    joined_test_quintgram = [' '.join(quintgram) for quintgram in test_quintgram]
 
     sns.barplot(x = joined_train_bigram, y = train_bigram_frequency)
     sns.barplot(x = joined_test_bigram, y = test_bigram_frequency)
@@ -314,9 +347,86 @@ def ngram_frequency():
     plt.ylabel("빈도")
     plt.show()
 
-# 4, 5-gram도 의미 있는지 테스트
+    sns.barplot(x = joined_train_quadgram, y = train_quadgram_frequency)
+    sns.barplot(x = joined_test_quadgram, y = test_quadgram_frequency)
+    plt.title("학습 데이터의 quadgram")
+    plt.xlabel("quadgram")
+    plt.ylabel("빈도")
+    plt.show()
+
+    sns.barplot(x = joined_train_quintgram, y = train_quintgram_frequency)
+    sns.barplot(x = joined_test_quintgram, y = test_quintgram_frequency)
+    plt.title("학습 데이터의 quintgram")
+    plt.xlabel("quintgram")
+    plt.ylabel("빈도")
+    plt.show()
+
+def tf_idf():
+    train, test = synonym()
+    
+    tf = TfidfVectorizer(
+    tokenizer=lambda x: x,      
+    preprocessor=lambda x: x,   
+    token_pattern=None,         
+    lowercase=False             
+)
+    train_tf = tf.fit_transform(train)
+    test_tf = tf.transform(test)
+
+    words = tf.get_feature_names_out()
+    
+    sums = train_tf.sum(axis = 0).A1
+    df_tfidf = pd.DataFrame({"words" : words, "tfidf" : sums})
+    train_top20 = df_tfidf.sort_values(by = "tfidf", ascending = False).head(20)
+
+    sums = test_tf.sum(axis = 0).A1
+    df_tfidf = pd.DataFrame({"words" : words, "tfidf" : sums})
+    test_top20 = df_tfidf.sort_values(by = "tfidf", ascending = False).head(20)
+
+    plt.figure(figsize = (10, 6))
+    plt.bar(train_top20["words"], train_top20["tfidf"])
+    plt.title("학습 데이터의 tf-idf 시각화(내림차순 / 상위 20개)")
+    plt.xlabel("단어")
+    plt.ylabel("tf-idf")
+    plt.show()
+
+    plt.figure(figsize = (10, 6))
+    plt.bar(test_top20["words"], test_top20["tfidf"])
+    plt.title("테스트 데이터의 tf-idf 시각화(내림차순 / 상위 20개)")
+    plt.xlabel("단어")
+    plt.ylabel("tf-idf")
+    plt.show()
+    
+
+if __name__ == "__main__":
+    class_distribution()
+    sentence_length()
+    ngram_frequency()
+    tf_idf()
+
+# 유의어 대치
+# 같은 뜻이지만 다른 단어들을 같은 단어로 치환
+
+# 클래스 불균형
+# 독소조항이 현저히 적음 -> 오버샘플링, 언더샘플링, 가중치 부여 등 고려
+
+# 문장 길이 분포
+# 300자 이상부터는 데이터가 적음
+# 300자에서 truncation을 고려해볼 수 있음
+
+# n-gram 빈도
+# bigram, trigram, quadgram은 필요해보임
+# quintgram까지는 필요없을 것 같음
+
 # TF-IDF 시각화
-# 단어 빈도수 체크(너무 적게 나오는 단어 따로 처리)
+# 학습 데이터의 tf-idf 시각화(내림차순 / 상위 20개)
+# 테스트 데이터의 tf-idf 시각화(내림차순 / 상위 20개)
+# 핵심 단어 추출에 도움이 될 것 같음
+
+
+
+
+    
 
 
     
